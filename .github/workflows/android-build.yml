@@ -1,6 +1,10 @@
+
 name: Build OGxISAI Mic APK
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -11,10 +15,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Extract Android project
+      - name: Check project ZIP
         run: |
-          unzip -q OGxISAI-Mic-Android-Project.zip
-          ls -la ogandroid
+          ls -lah
+          unzip -l OGxISAI-Mic-Android-Project.zip | head -50
+
+      - name: Extract project
+        run: |
+          mkdir android-project
+          unzip -q OGxISAI-Mic-Android-Project.zip -d android-project
+          find android-project -maxdepth 3 -type f | head -100
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -22,17 +32,7 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.9'
-
       - name: Build APK
-        working-directory: ogandroid
-        run: gradle assembleDebug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: OGxISAI-Mic-APK
-          path: ogandroid/app/build/outputs/apk/debug/*.apk
+        run: |
+          cd android-project
+          find . -name gradlew -type f -print
